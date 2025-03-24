@@ -1,0 +1,107 @@
+name: 'GoLangCI Lint Action'
+description: 'A GitHub Action to run GoLangCI-Lint on pull requests'
+
+inputs:
+  lerian_studio_midaz_push_bot_app_id:
+    description: 'The App ID for the GitHub App'
+    required: true
+  lerian_studio_midaz_push_bot_private_key:
+    description: 'The private key for the GitHub App'
+    required: true
+  lerian_ci_cd_user_gpg_key:
+    description: 'The GPG key for the user'
+    required: true
+  lerian_ci_cd_user_gpg_key_password:
+    description: 'The password for the GPG key'
+    required: true
+  lerian_ci_cd_user_name:
+    description: 'The name of the user'
+    required: true
+  lerian_ci_cd_user_email:
+    description: 'The email of the user'
+    required: true
+  go_version:
+    description: 'The Go version to use'
+    required: true
+    default: '1.23'
+  github_token:
+    description: 'GitHub token for API interactions'
+    required: true
+  reviewdog_level:
+    description: 'Level of reviewdog output'
+    required: true
+    default: 'error'
+  fail_level:
+    description: 'Fail level for reviewdog'
+    required: true
+    default: 'any'
+  reporter:
+    description: 'Reviewdog reporter type'
+    required: true
+    default: 'github-pr-review'
+  filter_mode:
+    description: 'Reviewdog filter mode'
+    required: true
+    default: 'diff_context'
+  golangci_lint_version:
+    description: 'GolangCI-Lint version to use'
+    required: true
+    default: 'v1.64.8'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create GitHub App Token
+      if: github.event.pull_request.head.repo.fork == false
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ inputs.lerian_studio_midaz_push_bot_app_id }}
+        private-key: ${{ inputs.lerian_studio_midaz_push_bot_private_key }}
+
+    - name: Import GPG Key
+      if: github.event.pull_request.head.repo.fork == false
+      uses: crazy-max/ghaction-import-gpg@v6
+      id: import_gpg
+      with:
+        gpg_private_key: ${{ inputs.lerian_ci_cd_user_gpg_key }}
+        passphrase: ${{ inputs.lerian_ci_cd_user_gpg_key_password }}
+        git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
+        git_committer_email: ${{ inputs.lerian_ci_cd_user_email }}
+        git_config_global: true
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Run GoLangCI-Lint for Non-Fork Repos
+      if: github.event.pull_request.head.repo.fork == false
+      uses: reviewdog/action-golangci-lint@v2
+      with:
+        github_token: ${{ inputs.github_token }}
+        go_version: ${{ inputs.go_version }}
+        tool_name: golint
+        level: ${{ inputs.reviewdog_level }}
+        fail_level: ${{ inputs.fail_level }}
+        reporter: ${{ inputs.reporter }}
+        filter_mode: ${{ inputs.filter_mode }}
+        golangci_lint_version: ${{ inputs.golangci_lint_version }}
+        reviewdog_github_api_token: ${{ inputs.github_token }}
+        git_author_name: ${{ inputs.lerian_ci_cd_user_name }}
+        git_author_email: ${{ inputs.lerian_ci_cd_user_email }}
+        git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
+        git_committer_email: ${{ inputs.lerian_ci_cd_user_email }}
+
+    - name: Setup Go for Forked Repo
+      if: github.event.pull_request.head.repo.fork == true
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: false
+
+    - name: Run GoLangCI-Lint for Forked Repos
+      if: github.event.pull_request.head.repo.fork == true
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: latest
