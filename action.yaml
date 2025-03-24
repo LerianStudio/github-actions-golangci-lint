@@ -87,7 +87,6 @@ runs:
         reporter: ${{ inputs.reporter }}
         filter_mode: ${{ inputs.filter_mode }}
         reviewdog_github_api_token: ${{ inputs.github_token }}
-        github_token: ${{ inputs.github_token }}
         git_author_name: ${{ inputs.lerian_ci_cd_user_name }}
         git_author_email: ${{ inputs.lerian_ci_cd_user_email }}
         git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
