@@ -47,6 +47,11 @@ inputs:
     description: 'GolangCI-Lint version to use'
     required: true
     default: 'v1.64.8'
+  cache:
+    description: 'Enable GolangCI-Lint caching (true/false)'
+    required: false
+    default: 'false'
+  
 
 runs:
   using: 'composite'
@@ -92,6 +97,7 @@ runs:
         git_author_email: ${{ inputs.lerian_ci_cd_user_email }}
         git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
         git_committer_email: ${{ inputs.lerian_ci_cd_user_email }}
+        cache: ${{ inputs.cache }}  # Controle do cache
 
     - name: Setup Go for Forked Repo
       if: github.event.pull_request.head.repo.fork == true
