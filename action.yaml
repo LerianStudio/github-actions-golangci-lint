@@ -79,7 +79,7 @@ runs:
       if: github.event.pull_request.head.repo.fork == false
       uses: reviewdog/action-golangci-lint@v2
       with:
-        github_token: ${{ inputs.github_token }}
+        #github_token: ${{ inputs.github_token }}
         go_version: ${{ inputs.go_version }}
         tool_name: golint
         level: ${{ inputs.reviewdog_level }}
@@ -87,7 +87,7 @@ runs:
         reporter: ${{ inputs.reporter }}
         filter_mode: ${{ inputs.filter_mode }}
         golangci_lint_version: ${{ inputs.golangci_lint_version }}
-        reviewdog_github_api_token: ${{ inputs.github_token }}
+        reviewdog_github_api_token: ${{ steps.app-token.outputs.token }}
         git_author_name: ${{ inputs.lerian_ci_cd_user_name }}
         git_author_email: ${{ inputs.lerian_ci_cd_user_email }}
         git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
