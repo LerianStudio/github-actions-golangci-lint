@@ -51,6 +51,9 @@ inputs:
     description: 'Enable GolangCI-Lint caching (true/false)'
     required: false
     default: 'false'
+  manage_token:
+    description: 'Personal access token to access private Go modules'
+    required: false
 
 runs:
   using: 'composite'
@@ -88,7 +91,7 @@ runs:
     - name: Configure GOPRIVATE and .netrc for private modules
       shell: bash
       run: |
-        echo -e "machine github.com\nlogin oauth2\npassword ${{ secrets.MANAGE_TOKEN }}" > ~/.netrc
+        echo -e "machine github.com\nlogin oauth2\npassword ${{ inputs.manage_token }}" > ~/.netrc
         echo "GOPRIVATE=github.com/LerianStudio/*" >> $GITHUB_ENV
         echo "GONOSUMDB=github.com/LerianStudio/*" >> $GITHUB_ENV
 
