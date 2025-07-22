@@ -1,5 +1,5 @@
 name: 'GoLangCI Lint Action'
-description: 'A GitHub Action to run GoLangCI-Lint on pull requests'
+description: 'A GitHub Action to run GoLangCI-Lint on pull requests with private module support'
 
 inputs:
   lerian_studio_midaz_push_bot_app_id:
@@ -51,7 +51,6 @@ inputs:
     description: 'Enable GolangCI-Lint caching (true/false)'
     required: false
     default: 'false'
-  
 
 runs:
   using: 'composite'
@@ -80,11 +79,27 @@ runs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go_version }}
+        cache: false
+
+    - name: Configure GOPRIVATE and .netrc for private modules
+      shell: bash
+      run: |
+        echo -e "machine github.com\nlogin oauth2\npassword ${{ secrets.MANAGE_TOKEN }}" > ~/.netrc
+        echo "GOPRIVATE=github.com/LerianStudio/*" >> $GITHUB_ENV
+        echo "GONOSUMDB=github.com/LerianStudio/*" >> $GITHUB_ENV
+
+    - name: Download Go Modules
+      shell: bash
+      run: go mod download
+
     - name: Run GoLangCI-Lint for Non-Fork Repos
       if: github.event.pull_request.head.repo.fork == false
       uses: reviewdog/action-golangci-lint@v2
       with:
-        #github_token: ${{ inputs.github_token }}
         go_version: ${{ inputs.go_version }}
         tool_name: golint
         level: ${{ inputs.reviewdog_level }}
@@ -97,7 +112,7 @@ runs:
         git_author_email: ${{ inputs.lerian_ci_cd_user_email }}
         git_committer_name: ${{ inputs.lerian_ci_cd_user_name }}
         git_committer_email: ${{ inputs.lerian_ci_cd_user_email }}
-        cache: ${{ inputs.cache }}  # Controle do cache
+        cache: ${{ inputs.cache }}
 
     - name: Setup Go for Forked Repo
       if: github.event.pull_request.head.repo.fork == true
