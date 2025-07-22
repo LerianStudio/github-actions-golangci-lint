@@ -51,9 +51,9 @@ inputs:
     description: 'Enable GolangCI-Lint caching (true/false)'
     required: false
     default: 'false'
-   manage_token:
+  manage_token:
     description: 'Personal access token to access private Go modules'
-    required: true
+    required: false
 
 runs:
   using: 'composite'
